@@ -1,0 +1,27 @@
+{
+  "name": "caern",
+  "version": "1.0.0",
+  "description": "An interactive 3D map of a Dungeons and Dragons (DND) campaign.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "jest",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/three": "^0.180.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12"
+  }
+}

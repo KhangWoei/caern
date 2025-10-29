@@ -1,0 +1,9 @@
+.npm
+node_modules/
+
+build/
+
+*.tsbuildinfo
+
+**/.vitepress/dist
+**/.vitepress/cache
