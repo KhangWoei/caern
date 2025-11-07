@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
+    "module": "ESNext",
     "skipLibCheck": true,
     "target": "esnext",
     "types": [],
@@ -10,7 +10,7 @@
     "moduleDetection": "force",
 
     "isolatedModules": true,
-    "verbatimModuleSyntax": true,
+    "moduleResolution": "bundler",
 
     "sourceMap": true,
     "declaration": true,
