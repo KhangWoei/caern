@@ -8,7 +8,7 @@ export class SceneManager {
     constructor(canvas: HTMLCanvasElement) {
         this._scene = new THREE.Scene();
         this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this._camera.position.set(0, 0, 20);
+        this._camera.position.set(0, 0, 50);
         this._renderer = new THREE.WebGLRenderer({ canvas })
     }
 
@@ -41,6 +41,9 @@ export class SceneManager {
         this._renderer.setAnimationLoop(() => this._animate());
         document.body.appendChild(this._renderer.domElement);
     }
+
+    // TODO: ugh
+    public getScene(): THREE.Scene { return this._scene; }
 
     private _animate(...params: Array<() => void>): void {
         params.forEach(animation => {
