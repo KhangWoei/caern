@@ -13,12 +13,28 @@ export class SceneManager {
     }
 
     public render(): void {
+        const planeSize: number = 40;
+        const loader: THREE.TextureLoader = new THREE.TextureLoader();
+        const texture = loader.load("textures/concrete_floor/rough.jpg");
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.magFilter = THREE.NearestFilter;
+        texture.colorSpace = THREE.SRGBColorSpace;
 
+        const repeats = planeSize / 2;
+        texture.repeat.set(repeats, repeats);
+
+        const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
+        const planeMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            side: THREE.DoubleSide,
+        });
+        const mesh = new THREE.Mesh(planeGeo, planeMat);
+        this._scene.add(mesh);
 
         const color: number = 0xFFFFFF;
-        const intensity: number = 3;
-        const light: THREE.Light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
+        const intensity: number = 5;
+        const light: THREE.Light = new THREE.AmbientLight(color, intensity);
         this._scene.add(light);
 
         this._renderer.setSize(window.innerWidth, window.innerHeight);
