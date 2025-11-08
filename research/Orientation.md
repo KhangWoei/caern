@@ -1,4 +1,4 @@
-# Orientation & Co-ordinate system
+# Co-ordinate system
 
 ## World Space
 Scenes defines a "world" space co-ordinate system depicted in the graph below. Objects added to a scene will move relative to said world space.
@@ -10,3 +10,10 @@ Objects have their own space. What does this mean? In essenence, whenever an obj
 
 ### References
 - [Coordinate Systems: World Space and Local Space](https://discoverthreejs.com/book/first-steps/transformations/#coordinate-systems-world-space-and-local-space)
+
+# Orinetation decision
+For intuitive 2D map co-ordinates, this project uses the XY plane for the map surface
+
+## Rationale
+Map co-ordinates are naturally expressed as (X, Y) positions
+
