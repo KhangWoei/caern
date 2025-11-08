@@ -1,1 +1,2 @@
 public/** filter=lfs diff=lfs merge=lfs -text
+research/assets/** filter=lfs diff=lfs merge=lfs -text
