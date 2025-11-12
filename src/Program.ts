@@ -1,5 +1,6 @@
-import { SceneManager } from "./SceneManager";
+import { SceneManager } from "./Scenes/SceneManager";
 import { DebugUI } from "./DebugUI";
+import { EventBus } from "./EventBus";
 
 export class Program {
     private readonly _container: HTMLElement;
@@ -10,11 +11,13 @@ export class Program {
         const container: HTMLElement | null = document.getElementById("root")!;
         this._container = container;
 
+        const eventBus: EventBus = new EventBus();
+
         const map: HTMLCanvasElement | null = this._container.querySelector("#map")!;
-        this._sceneManager = new SceneManager(map);
+        this._sceneManager = new SceneManager(map, eventBus);
 
         if (import.meta.env.DEV) {
-            this._debugUI = new DebugUI(this._sceneManager);
+            this._debugUI = new DebugUI(eventBus);
         }
     }
 
