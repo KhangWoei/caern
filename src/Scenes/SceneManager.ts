@@ -44,7 +44,6 @@ export class SceneManager {
 
         this._renderer.setSize(window.innerWidth, window.innerHeight);
         this._renderer.setAnimationLoop(() => this._animate());
-        document.body.appendChild(this._renderer.domElement);
     }
 
     // TODO: ugh
