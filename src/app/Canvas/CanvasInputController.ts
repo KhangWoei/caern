@@ -42,7 +42,6 @@ export class CanvasInputController extends InputController {
     private onWheel(event: WheelEvent): void {
         event.preventDefault();
 
-        console.log(event);
-        this._eventBus.publish(CameraEvents.Zoom);
+        this._eventBus.publish(CameraEvents.Zoom, event.deltaY);
     }
 }

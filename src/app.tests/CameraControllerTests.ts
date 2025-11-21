@@ -1,0 +1,81 @@
+import { describe, expect, test } from "vitest"
+import { CameraController, CameraControllerOptions } from "../app/Canvas/Camera/CameraController";
+import { EventBus } from "../app/EventBus";
+import { Camera } from "three";
+import { CameraEvents } from "../app/Canvas/Camera/CameraEvents";
+
+describe("ZoomEvent", () => {
+    test("should zoom in", () => {
+        const eventBus: EventBus = new EventBus();
+        const camera: Camera = new Camera();
+        const cameraOptions: CameraControllerOptions = {
+            minZ: -100,
+            maxZ: 100,
+            scale: 1
+        }
+        new CameraController(eventBus, camera, cameraOptions);
+
+        const initialZ = camera.position.z;
+        eventBus.publish(CameraEvents.Zoom, -10);
+        expect(camera.position.z).toBe(initialZ - 10);
+    });
+
+    test("should zoom out", () => {
+        const eventBus: EventBus = new EventBus();
+        const camera: Camera = new Camera();
+        const cameraOptions: CameraControllerOptions = {
+            minZ: -100,
+            maxZ: 100,
+            scale: 1
+        }
+        new CameraController(eventBus, camera, cameraOptions);
+
+        const initialZ = camera.position.z;
+        eventBus.publish(CameraEvents.Zoom, 10);
+        expect(camera.position.z).toBe(initialZ + 10);
+    });
+
+    test("should be clamped at maximum", () => {
+        const eventBus: EventBus = new EventBus();
+        const camera: Camera = new Camera();
+        const cameraOptions: CameraControllerOptions = {
+            minZ: -100,
+            maxZ: 100,
+            scale: 1
+        }
+        new CameraController(eventBus, camera, cameraOptions);
+
+        eventBus.publish(CameraEvents.Zoom, Number.MAX_SAFE_INTEGER);
+        expect(camera.position.z).toBe(100);
+    });
+
+    test("should be clamped at a minimum", () => {
+        const eventBus: EventBus = new EventBus();
+        const camera: Camera = new Camera();
+        const cameraOptions: CameraControllerOptions = {
+            minZ: -100,
+            maxZ: 100,
+            scale: 1
+        }
+        new CameraController(eventBus, camera, cameraOptions);
+
+        eventBus.publish(CameraEvents.Zoom, Number.MIN_SAFE_INTEGER);
+        expect(camera.position.z).toBe(-100);
+    });
+
+    test("should zoom proprotional to scale", () => {
+        const eventBus: EventBus = new EventBus();
+        const camera: Camera = new Camera();
+        const cameraOptions: CameraControllerOptions = {
+            minZ: -100,
+            maxZ: 100,
+            scale: 2
+        }
+        new CameraController(eventBus, camera, cameraOptions);
+
+        const initialZ = camera.position.z;
+        const zoom: number = 10;
+        eventBus.publish(CameraEvents.Zoom, zoom);
+        expect(camera.position.z).toBe(initialZ + (zoom * cameraOptions.scale));
+    });
+});

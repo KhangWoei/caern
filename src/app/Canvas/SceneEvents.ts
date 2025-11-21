@@ -1,4 +1,4 @@
 export enum SceneEvents {
-    Add = 1,
-    Remove = 2
+    Add = "scene:add",
+    Remove = "scene:remove"
 }

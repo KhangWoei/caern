@@ -11,7 +11,7 @@ type EventCallbackMap = {
     [K in Events]: K extends SceneEvents.Add ? (...object: Object3D[]) => void
     : K extends SceneEvents.Remove ? (...object: Object3D[]) => void
     : K extends CameraEvents.Rotate ? () => void
-    : K extends CameraEvents.Zoom ? () => void
+    : K extends CameraEvents.Zoom ? (deltaZ: number) => void
     : K extends CameraEvents.EdgePan ? () => void
     : never;
 }
@@ -27,7 +27,7 @@ export class EventBus {
         let callbacks: Set<EventCallbackMap[E]> | undefined = this._eventMap.get(event);
 
         if (callbacks === undefined) {
-            callbacks = new Set<() => void>();
+            callbacks = new Set<EventCallbackMap[E]>();
             this._eventMap.set(event, callbacks);
         }
 

@@ -1,5 +1,5 @@
 export enum CameraEvents {
-    Rotate,
-    Zoom,
-    EdgePan
+    Rotate = "camera:rotate",
+    Zoom = "camera:zoom",
+    EdgePan = "camera:pan"
 }

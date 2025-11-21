@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { EventBus } from "../EventBus";
 import { SceneEvents } from "./SceneEvents";
-import { CameraController } from "./Camera/CameraController";
+import { CameraController, CameraControllerOptions } from "./Camera/CameraController";
 
 export class SceneManager {
     private readonly _renderer: THREE.WebGLRenderer;
@@ -15,7 +15,7 @@ export class SceneManager {
         this._camera.position.set(0, 0, 50);
         this._renderer = new THREE.WebGLRenderer({ canvas })
 
-        this._cameraControls = new CameraController(this._camera, eventBus);
+        this._cameraControls = new CameraController(eventBus, this._camera);
         this.subscribe(eventBus);
     }
 
