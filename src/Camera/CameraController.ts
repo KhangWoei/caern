@@ -1,8 +1,12 @@
+import * as THREE from "three"
 import { EventBus } from "../EventBus";
 import { CameraEvents } from "./CameraEvents";
 
 export class CameraController {
-    constructor(eventBus: EventBus) {
+    private readonly _camera: THREE.Camera;
+
+    constructor(camera: THREE.Camera, eventBus: EventBus) {
+        this._camera = camera;
         this.subscribe(eventBus);
     }
 
