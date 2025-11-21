@@ -49,6 +49,7 @@ export class SceneManager {
     }
 
     private _animate(...params: Array<() => void>): void {
+        this._cameraControls.update();
         params.forEach(animation => {
             animation()
         });

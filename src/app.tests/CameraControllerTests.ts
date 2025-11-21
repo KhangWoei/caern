@@ -13,10 +13,11 @@ describe("ZoomEvent", () => {
             maxZ: 100,
             scale: 1
         }
-        new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, cameraOptions);
 
         const initialZ = camera.position.z;
         eventBus.publish(CameraEvents.Zoom, -10);
+        controller.update();
         expect(camera.position.z).toBe(initialZ - 10);
     });
 
@@ -28,10 +29,11 @@ describe("ZoomEvent", () => {
             maxZ: 100,
             scale: 1
         }
-        new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, cameraOptions);
 
         const initialZ = camera.position.z;
         eventBus.publish(CameraEvents.Zoom, 10);
+        controller.update();
         expect(camera.position.z).toBe(initialZ + 10);
     });
 
@@ -43,9 +45,11 @@ describe("ZoomEvent", () => {
             maxZ: 100,
             scale: 1
         }
-        new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, cameraOptions);
 
         eventBus.publish(CameraEvents.Zoom, Number.MAX_SAFE_INTEGER);
+        controller.update();
+
         expect(camera.position.z).toBe(100);
     });
 
@@ -57,9 +61,10 @@ describe("ZoomEvent", () => {
             maxZ: 100,
             scale: 1
         }
-        new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, cameraOptions);
 
         eventBus.publish(CameraEvents.Zoom, Number.MIN_SAFE_INTEGER);
+        controller.update();
         expect(camera.position.z).toBe(-100);
     });
 
@@ -69,13 +74,18 @@ describe("ZoomEvent", () => {
         const cameraOptions: CameraControllerOptions = {
             minZ: -100,
             maxZ: 100,
-            scale: 2
+            scale: 0.1
         }
-        new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, cameraOptions);
 
         const initialZ = camera.position.z;
-        const zoom: number = 10;
+        const zoom = 10;
+        const expected = initialZ + (zoom * cameraOptions.scale);
         eventBus.publish(CameraEvents.Zoom, zoom);
-        expect(camera.position.z).toBe(initialZ + (zoom * cameraOptions.scale));
+
+        for (let i = 0; i < 100; i++) {
+            controller.update();
+        }
+        expect(camera.position.z).toBeCloseTo(expected);
     });
 });
