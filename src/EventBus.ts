@@ -1,11 +1,19 @@
 import { Object3D } from "three";
 import { SceneEvents } from "./Scenes/SceneEvents"
+import { CameraEvents } from "./Camera/CameraEvents";
 
-type Events = SceneEvents;
+type Events = SceneEvents | CameraEvents;
 
+/*
+ * Need to do K in Events to assure the compiler that all enum values are addressed.
+ */
 type EventCallbackMap = {
-    [SceneEvents.Add]: (...object: Object3D[]) => void;
-    [SceneEvents.Remove]: (...object: Object3D[]) => void;
+    [K in Events]: K extends SceneEvents.Add ? (...object: Object3D[]) => void
+    : K extends SceneEvents.Remove ? (...object: Object3D[]) => void
+    : K extends CameraEvents.Rotate ? () => void
+    : K extends CameraEvents.Zoom ? () => void
+    : K extends CameraEvents.EdgePan ? () => void
+    : never;
 }
 
 export class EventBus {
@@ -35,7 +43,7 @@ export class EventBus {
 
         callbacks.delete(callback);
 
-        if (callbacks.size == 0) {
+        if (callbacks.size === 0) {
             this._eventMap.delete(event);
         }
     }
