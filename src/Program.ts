@@ -1,7 +1,7 @@
 import { SceneManager } from "./Scenes/SceneManager";
 import { DebugUI } from "./DebugUI";
 import { EventBus } from "./EventBus";
-import { CanvasInputController } from "./Inputs/InputController";
+import { CanvasInputController } from "./Inputs/CanvasInputController";
 
 export class Program {
     private readonly _container: HTMLElement;

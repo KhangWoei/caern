@@ -1,11 +1,13 @@
 import * as THREE from "three";
 import { EventBus } from "../EventBus";
 import { SceneEvents } from "./SceneEvents";
+import { CameraController } from "../Camera/CameraController";
 
 export class SceneManager {
     private readonly _renderer: THREE.WebGLRenderer;
     private readonly _scene: THREE.Scene;
     private readonly _camera: THREE.Camera;
+    private readonly _cameraControls: CameraController;
 
     constructor(canvas: HTMLCanvasElement, eventBus: EventBus) {
         this._scene = new THREE.Scene();
@@ -13,8 +15,8 @@ export class SceneManager {
         this._camera.position.set(0, 0, 50);
         this._renderer = new THREE.WebGLRenderer({ canvas })
 
-        eventBus.subscribe(SceneEvents.Add, (...objects: THREE.Object3D[]) => { this._scene.add(...objects) });
-        eventBus.subscribe(SceneEvents.Remove, (...objects: THREE.Object3D[]) => { this._scene.remove(...objects) });
+        this._cameraControls = new CameraController(eventBus);
+        this.subscribe(eventBus);
     }
 
     public render(): void {
@@ -46,9 +48,6 @@ export class SceneManager {
         this._renderer.setAnimationLoop(() => this._animate());
     }
 
-    // TODO: ugh
-    public getScene(): THREE.Scene { return this._scene; }
-
     private _animate(...params: Array<() => void>): void {
         params.forEach(animation => {
             animation()
@@ -56,5 +55,12 @@ export class SceneManager {
 
         this._renderer.render(this._scene, this._camera);
     }
+
+    // TODO: Unsubscribe when type is disposed - to be honest it doesn't matter in this scenario as this type will live throughout the lifetime of the application
+    private subscribe(eventBus: EventBus): void {
+        eventBus.subscribe(SceneEvents.Add, (...objects: THREE.Object3D[]) => { this._scene.add(...objects) });
+        eventBus.subscribe(SceneEvents.Remove, (...objects: THREE.Object3D[]) => { this._scene.remove(...objects) });
+    }
+
 }
 
