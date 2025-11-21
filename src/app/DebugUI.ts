@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EventBus } from './EventBus';
-import { SceneEvents } from './Scenes/SceneEvents';
+import { SceneEvents } from './Canvas/SceneEvents';
 
 export class DebugUI implements Disposable {
     private readonly _eventBus: EventBus;

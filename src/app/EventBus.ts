@@ -1,6 +1,6 @@
 import { Object3D } from "three";
-import { SceneEvents } from "./Scenes/SceneEvents"
-import { CameraEvents } from "./Camera/CameraEvents";
+import { SceneEvents } from "./Canvas/SceneEvents"
+import { CameraEvents } from "./Canvas/Camera/CameraEvents";
 
 type Events = SceneEvents | CameraEvents;
 

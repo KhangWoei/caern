@@ -1,6 +1,6 @@
 import { EventBus } from "../EventBus";
-import { InputController } from "./InputController";
-import { CameraEvents } from "../Camera/CameraEvents";
+import { InputController } from "../InputController";
+import { CameraEvents } from "./Camera/CameraEvents";
 
 // TODO: Revisit this type, it belongs in the wrong place
 export class CanvasInputController extends InputController {

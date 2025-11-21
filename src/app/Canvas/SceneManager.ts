@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { EventBus } from "../EventBus";
 import { SceneEvents } from "./SceneEvents";
-import { CameraController } from "../Camera/CameraController";
+import { CameraController } from "./Camera/CameraController";
 
 export class SceneManager {
     private readonly _renderer: THREE.WebGLRenderer;
@@ -56,7 +56,6 @@ export class SceneManager {
         this._renderer.render(this._scene, this._camera);
     }
 
-    // TODO: Unsubscribe when type is disposed - to be honest it doesn't matter in this scenario as this type will live throughout the lifetime of the application
     private subscribe(eventBus: EventBus): void {
         eventBus.subscribe(SceneEvents.Add, (...objects: THREE.Object3D[]) => { this._scene.add(...objects) });
         eventBus.subscribe(SceneEvents.Remove, (...objects: THREE.Object3D[]) => { this._scene.remove(...objects) });

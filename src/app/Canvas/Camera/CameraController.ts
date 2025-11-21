@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { EventBus } from "../EventBus";
+import { EventBus } from "../../EventBus";
 import { CameraEvents } from "./CameraEvents";
 
 export class CameraController {
