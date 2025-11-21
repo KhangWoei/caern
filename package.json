@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "jest",
+    "test": "vitest",
     "preview": "vite preview"
   },
   "keywords": [],
@@ -17,11 +17,9 @@
     "three": "^0.180.0"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
     "@types/three": "^0.180.0",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.5",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "vitest": "^4.0.13"
   }
 }
