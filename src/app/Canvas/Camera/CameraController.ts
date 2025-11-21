@@ -50,6 +50,7 @@ export class CameraController {
     private onRotate(): void {
         console.log("rotating")
     }
+
     // Browser wheel events only know about 2D scroll (deltaX/deltaY).
     // We map deltaY (vertical scroll) to deltaZ (camera depth in 3D space).
     private onZoom(deltaY: number): void {
