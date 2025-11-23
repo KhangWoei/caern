@@ -1,19 +1,15 @@
 import { describe, expect, test } from "vitest"
-import { CameraController, CameraControllerOptions } from "../app/Canvas/Camera/CameraController";
+import { CameraController } from "../app/Canvas/Camera/CameraController";
 import { EventBus } from "../app/EventBus";
 import { Camera } from "three";
 import { CameraEvents } from "../app/Canvas/Camera/CameraEvents";
+import { Direction } from "../app/Canvas/Camera/CameraController";
 
 describe("ZoomEvent", () => {
     test("should zoom in", () => {
         const eventBus: EventBus = new EventBus();
         const camera: Camera = new Camera();
-        const cameraOptions: CameraControllerOptions = {
-            minZ: -100,
-            maxZ: 100,
-            scale: 1
-        }
-        const controller = new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, { minZ: -100, scale: 1 });
 
         const initialZ = camera.position.z;
         eventBus.publish(CameraEvents.Zoom, -10);
@@ -24,12 +20,7 @@ describe("ZoomEvent", () => {
     test("should zoom out", () => {
         const eventBus: EventBus = new EventBus();
         const camera: Camera = new Camera();
-        const cameraOptions: CameraControllerOptions = {
-            minZ: -100,
-            maxZ: 100,
-            scale: 1
-        }
-        const controller = new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, { scale: 1 });
 
         const initialZ = camera.position.z;
         eventBus.publish(CameraEvents.Zoom, 10);
@@ -40,12 +31,7 @@ describe("ZoomEvent", () => {
     test("should be clamped at maximum", () => {
         const eventBus: EventBus = new EventBus();
         const camera: Camera = new Camera();
-        const cameraOptions: CameraControllerOptions = {
-            minZ: -100,
-            maxZ: 100,
-            scale: 1
-        }
-        const controller = new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, { maxZ: 100, scale: 1 });
 
         eventBus.publish(CameraEvents.Zoom, Number.MAX_SAFE_INTEGER);
         controller.update();
@@ -56,12 +42,7 @@ describe("ZoomEvent", () => {
     test("should be clamped at a minimum", () => {
         const eventBus: EventBus = new EventBus();
         const camera: Camera = new Camera();
-        const cameraOptions: CameraControllerOptions = {
-            minZ: -100,
-            maxZ: 100,
-            scale: 1
-        }
-        const controller = new CameraController(eventBus, camera, cameraOptions);
+        const controller = new CameraController(eventBus, camera, { minZ: -100, scale: 1 });
 
         eventBus.publish(CameraEvents.Zoom, Number.MIN_SAFE_INTEGER);
         controller.update();
@@ -71,16 +52,12 @@ describe("ZoomEvent", () => {
     test("should zoom proprotional to scale", () => {
         const eventBus: EventBus = new EventBus();
         const camera: Camera = new Camera();
-        const cameraOptions: CameraControllerOptions = {
-            minZ: -100,
-            maxZ: 100,
-            scale: 0.1
-        }
-        const controller = new CameraController(eventBus, camera, cameraOptions);
+        const scale = 1;
+        const controller = new CameraController(eventBus, camera, { minZ: -100, maxZ: 100, scale });
 
         const initialZ = camera.position.z;
         const zoom = 10;
-        const expected = initialZ + (zoom * cameraOptions.scale);
+        const expected = initialZ + (zoom * scale);
         eventBus.publish(CameraEvents.Zoom, zoom);
 
         for (let i = 0; i < 100; i++) {

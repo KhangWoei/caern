@@ -37,8 +37,7 @@ export class CameraController {
     }
 
     public update(): void {
-        this._zoomInfo.currentZ += (this._zoomInfo.targetZ - this._zoomInfo.currentZ) * this._options.scale;
-        this._camera.position.setZ(this._zoomInfo.currentZ);
+        this.zoom();
     }
 
     private subscribe(eventBus: EventBus) {
@@ -61,8 +60,15 @@ export class CameraController {
         this._zoomInfo.targetZ = newZoom;
     }
 
-    private onEdgePan(): void {
-        console.log("panning")
+    private zoom(): void {
+        this._zoomInfo.currentZ += (this._zoomInfo.targetZ - this._zoomInfo.currentZ) * this._options.scale;
+        this._camera.position.setZ(this._zoomInfo.currentZ);
+
+        if (Math.abs(this._zoomInfo.targetZ - this._zoomInfo.currentZ) <= this._options.snap) {
+            this._zoomInfo.currentZ = this._zoomInfo.targetZ;
+        }
+    }
+    private onEdgePan(direction: Direction): void {
     }
 }
 
