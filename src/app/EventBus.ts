@@ -51,8 +51,9 @@ export class EventBus {
     public publish<E extends Events>(event: E, ...args: Parameters<EventCallbackMap[E]>): void {
         const callbacks: Set<EventCallbackMap[E]> | undefined = this._eventMap.get(event);
 
-        if (!!callbacks) {
+        if (callbacks) {
             callbacks.forEach(callback => {
+                // @ts-expect-error - TypeScript can't verify spread matches callback signature, but it's enforced at subscribe/publish call sites
                 callback(...args);
             });
         }
