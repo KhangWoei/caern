@@ -1,6 +1,7 @@
 import { Object3D } from "three";
 import { SceneEvents } from "./Canvas/SceneEvents"
 import { CameraEvents } from "./Canvas/Camera/CameraEvents";
+import { Direction } from "./Canvas/Camera/CameraController";
 
 type Events = SceneEvents | CameraEvents;
 
@@ -12,7 +13,7 @@ type EventCallbackMap = {
     : K extends SceneEvents.Remove ? (...object: Object3D[]) => void
     : K extends CameraEvents.Rotate ? () => void
     : K extends CameraEvents.Zoom ? (deltaZ: number) => void
-    : K extends CameraEvents.EdgePan ? () => void
+    : K extends CameraEvents.EdgePan ? (direction: Direction) => void
     : never;
 }
 
