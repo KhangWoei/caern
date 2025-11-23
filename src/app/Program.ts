@@ -1,7 +1,6 @@
 import { SceneManager } from "./Canvas/SceneManager";
 import { DebugUI } from "./DebugUI";
 import { EventBus } from "./EventBus";
-import { CanvasInputController } from "./Canvas/CanvasInputController";
 
 export class Program {
     private readonly _container: HTMLElement;
@@ -16,7 +15,6 @@ export class Program {
 
         const map: HTMLCanvasElement | null = this._container.querySelector("#map")!;
         this._sceneManager = new SceneManager(map, eventBus);
-        new CanvasInputController(map, eventBus);
 
         if (import.meta.env.DEV) {
             this._debugUI = new DebugUI(eventBus);
