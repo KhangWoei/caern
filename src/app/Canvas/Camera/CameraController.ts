@@ -39,6 +39,11 @@ type PanInfo = {
     vy: number
 }
 
+type Rotation = {
+    azimuthVelocity: number,
+    tiltVelocity: number
+}
+
 export class CameraController {
     private readonly _camera: THREE.Camera;
     private readonly _options: CameraControllerOptions;
@@ -49,6 +54,12 @@ export class CameraController {
         vy: 0
     };
 
+    private _rotation: Rotation = {
+        azimuthVelocity: 0,
+        tiltVelocity: 0
+    }
+    private _spherical: THREE.Spherical;
+
     constructor(eventBus: EventBus, camera: THREE.Camera, options: Partial<CameraControllerOptions> = {}) {
         this._camera = camera;
         this._options = { ...DEFAULT_OPTIONS, ...options };
@@ -56,6 +67,7 @@ export class CameraController {
             currentZ: camera.position.z,
             targetZ: camera.position.z
         }
+        this._spherical = new THREE.Spherical().setFromVector3(this._camera.position);
 
         this.subscribe(eventBus);
     }
@@ -63,6 +75,7 @@ export class CameraController {
     public update(): void {
         this.zoom();
         this.pan();
+        this.rotate();
     }
 
     private subscribe(eventBus: EventBus) {
@@ -72,7 +85,37 @@ export class CameraController {
     }
 
     private onRotate(direction: Direction): void {
-        console.log(direction)
+        switch (direction) {
+            case Direction.North:
+                this._rotation.tiltVelocity += this._options.acceleration;
+                break;
+            case Direction.South:
+                this._rotation.tiltVelocity -= this._options.acceleration;
+                break;
+            case Direction.East:
+                this._rotation.azimuthVelocity += this._options.acceleration;
+                break;
+            case Direction.West:
+                this._rotation.azimuthVelocity -= this._options.acceleration;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private rotate(): void {
+        this._spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, this._spherical.phi + this._rotation.tiltVelocity));
+        this._rotation.tiltVelocity = 0;
+
+        this._spherical.theta += this._rotation.azimuthVelocity;
+        this._rotation.azimuthVelocity = 0;
+
+        this._spherical.makeSafe();
+
+        console.log(this._spherical);
+
+        const cartesian = new THREE.Vector3().setFromSpherical(this._spherical);
+        console.log(cartesian);
     }
 
     // Browser wheel events only know about 2D scroll (deltaX/deltaY).
