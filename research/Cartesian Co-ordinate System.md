@@ -1,4 +1,6 @@
-# Co-ordinate system
+# Cartesian Co-ordinate system
+
+Cartesian coordinates definte a point using three distances (x, y, z) from the origin.
 
 ## World Space
 Scenes defines a "world" space co-ordinate system depicted in the graph below. Objects added to a scene will move relative to said world space.
