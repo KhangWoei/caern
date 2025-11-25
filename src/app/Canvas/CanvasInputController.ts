@@ -2,6 +2,8 @@ import { EventBus } from "../EventBus";
 import { InputController } from "../InputController";
 import { CameraEvents } from "./Camera/CameraEvents";
 import { Direction } from "./Camera/CameraController";
+import { Vector2 } from "three";
+import VelocityNode from "three/src/nodes/accessors/VelocityNode.js";
 
 // TODO: Revisit this type, it belongs in the wrong place
 export class CanvasInputController extends InputController {
@@ -9,6 +11,9 @@ export class CanvasInputController extends InputController {
     private readonly _eventBus: EventBus;
 
     private readonly _keysPressed: Set<string> = new Set();
+
+    private _currentPointer: Vector2 | null = null;
+    private _previousPointer: Vector2 | null = null;
 
     constructor(element: HTMLCanvasElement, eventBus: EventBus) {
         super();
@@ -33,6 +38,24 @@ export class CanvasInputController extends InputController {
                 case "d":
                     this._eventBus.publish(CameraEvents.EdgePan, Direction.East);
                     break;
+                case "mouse:wheel":
+                    if (this._currentPointer !== null && this._previousPointer !== null) {
+                        const threshold = 8;
+
+                        const deltaX = this._currentPointer.x - this._previousPointer.x;
+                        if (Math.abs(deltaX) > threshold) {
+                            this._eventBus.publish(CameraEvents.Rotate, deltaX > 0 ? Direction.East : Direction.West);
+                        }
+
+                        // In the browser, the top left is 0,0 which would invert the Y-axis when mapped into the Scene
+                        const deltaY = this._currentPointer.y - this._previousPointer.y;
+                        if (Math.abs(deltaY) > threshold) {
+                            this._eventBus.publish(CameraEvents.Rotate, deltaY > 0 ? Direction.South : Direction.North);
+                        }
+
+                        this._previousPointer.copy(this._currentPointer);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -40,6 +63,9 @@ export class CanvasInputController extends InputController {
     }
 
     protected override attachListeners(): void {
+        this._canvas.addEventListener("pointerdown", this.onPointerDown.bind(this));
+        this._canvas.addEventListener("pointerup", this.onPointerUp.bind(this));
+
         this._canvas.addEventListener("pointermove", this.onPointerMove.bind(this));
         this._canvas.addEventListener("wheel", this.onWheel.bind(this));
 
@@ -51,8 +77,24 @@ export class CanvasInputController extends InputController {
         });
     }
 
+    private onPointerDown(event: PointerEvent): void {
+        if (event.button == 1) {
+            this._keysPressed.add("mouse:wheel");
+            this._currentPointer = new Vector2(event.x, event.y);
+            this._previousPointer = new Vector2().copy(this._currentPointer);
+        }
+    }
+
+    private onPointerUp(event: PointerEvent): void {
+        if (event.button == 1) {
+            this._keysPressed.delete("mouse:wheel");
+            this._currentPointer = null;
+            this._previousPointer = null;
+        }
+    }
+
     private onPointerMove(event: PointerEvent): void {
-        console.log(event);
+        this._currentPointer = new Vector2(event.x, event.y);
     }
 
     private onKeyDown(event: KeyboardEvent): void {

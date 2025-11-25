@@ -66,13 +66,13 @@ export class CameraController {
     }
 
     private subscribe(eventBus: EventBus) {
-        eventBus.subscribe(CameraEvents.Rotate, () => { this.onRotate() });
+        eventBus.subscribe(CameraEvents.Rotate, (direction: Direction) => { this.onRotate(direction) });
         eventBus.subscribe(CameraEvents.Zoom, (deltaY: number) => { this.onZoom(deltaY) });
         eventBus.subscribe(CameraEvents.EdgePan, (direction: Direction) => { this.onEdgePan(direction) });
     }
 
-    private onRotate(): void {
-        console.log("rotating")
+    private onRotate(direction: Direction): void {
+        console.log(direction)
     }
 
     // Browser wheel events only know about 2D scroll (deltaX/deltaY).
