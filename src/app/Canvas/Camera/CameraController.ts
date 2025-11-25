@@ -80,7 +80,7 @@ export class CameraController {
 
     private subscribe(eventBus: EventBus) {
         eventBus.subscribe(CameraEvents.Rotate, (direction: Direction) => { this.onRotate(direction) });
-        eventBus.subscribe(CameraEvents.Zoom, (deltaY: number) => { this.onZoom(deltaY) });
+        eventBus.subscribe(CameraEvents.Zoom, (zoom: number) => { this.onZoom(zoom) });
         eventBus.subscribe(CameraEvents.EdgePan, (direction: Direction) => { this.onEdgePan(direction) });
     }
 
@@ -118,10 +118,8 @@ export class CameraController {
         console.log(cartesian);
     }
 
-    // Browser wheel events only know about 2D scroll (deltaX/deltaY).
-    // We map deltaY (vertical scroll) to deltaZ (camera depth in 3D space).
-    private onZoom(deltaY: number): void {
-        const zoomDelta = deltaY * this._options.scale;
+    private onZoom(zoom: number): void {
+        const zoomDelta = zoom * this._options.scale;
 
         this._zoomInfo.target = Math.max(this._options.minZ, Math.min(this._options.maxZ, this._zoomInfo.target + zoomDelta));
     }

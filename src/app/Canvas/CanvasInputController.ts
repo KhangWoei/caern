@@ -109,6 +109,8 @@ export class CanvasInputController extends InputController {
         this._keysPressed.delete(event.key.toLowerCase());
     }
 
+    // Browser wheel events only know about 2D scroll (deltaX/deltaY).
+    // We map deltaY (vertical scroll) to deltaZ (camera depth in 3D space).
     private onWheel(event: WheelEvent): void {
         event.preventDefault();
         this._eventBus.publish(CameraEvents.Zoom, event.deltaY);

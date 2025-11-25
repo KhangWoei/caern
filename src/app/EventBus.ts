@@ -12,7 +12,7 @@ type EventCallbackMap = {
     [K in Events]: K extends SceneEvents.Add ? (...object: Object3D[]) => void
     : K extends SceneEvents.Remove ? (...object: Object3D[]) => void
     : K extends CameraEvents.Rotate ? (direction: Direction) => void
-    : K extends CameraEvents.Zoom ? (deltaZ: number) => void
+    : K extends CameraEvents.Zoom ? (zoom: number) => void
     : K extends CameraEvents.EdgePan ? (direction: Direction) => void
     : never;
 }
