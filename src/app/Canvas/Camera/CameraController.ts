@@ -30,13 +30,13 @@ const DEFAULT_OPTIONS: CameraControllerOptions = {
 }
 
 type ZoomInfo = {
-    currentZ: number,
-    targetZ: number
+    current: number,
+    target: number
 }
 
 type PanInfo = {
-    vx: number,
-    vy: number
+    horizontalVelocity: number,
+    verticalVelocity: number
 }
 
 type Rotation = {
@@ -50,8 +50,8 @@ export class CameraController {
 
     private _zoomInfo: ZoomInfo;
     private _panInfo: PanInfo = {
-        vx: 0,
-        vy: 0
+        horizontalVelocity: 0,
+        verticalVelocity: 0
     };
 
     private _rotation: Rotation = {
@@ -64,8 +64,8 @@ export class CameraController {
         this._camera = camera;
         this._options = { ...DEFAULT_OPTIONS, ...options };
         this._zoomInfo = {
-            currentZ: camera.position.z,
-            targetZ: camera.position.z
+            current: camera.position.z,
+            target: camera.position.z
         }
         this._spherical = new THREE.Spherical().setFromVector3(this._camera.position);
 
@@ -121,44 +121,50 @@ export class CameraController {
     // Browser wheel events only know about 2D scroll (deltaX/deltaY).
     // We map deltaY (vertical scroll) to deltaZ (camera depth in 3D space).
     private onZoom(deltaY: number): void {
-        const zoom: number = deltaY * this._options.scale;
+        const zoomDelta = deltaY * this._options.scale;
 
-        const newZoom: number = Math.max(this._options.minZ, Math.min(this._options.maxZ, this._camera.position.z + zoom));
-
-        this._zoomInfo.targetZ = newZoom;
+        this._zoomInfo.target = Math.max(this._options.minZ, Math.min(this._options.maxZ, this._zoomInfo.target + zoomDelta));
     }
 
     private zoom(): void {
-        this._zoomInfo.currentZ += (this._zoomInfo.targetZ - this._zoomInfo.currentZ) * this._options.scale;
-        this._camera.position.setZ(this._zoomInfo.currentZ);
-
-        if (Math.abs(this._zoomInfo.targetZ - this._zoomInfo.currentZ) <= this._options.snap) {
-            this._zoomInfo.currentZ = this._zoomInfo.targetZ;
+        if (Math.abs(this._zoomInfo.target - this._zoomInfo.current) <= this._options.snap) {
+            this._zoomInfo.current = this._zoomInfo.target;
+            return;
         }
+
+        const forward = new THREE.Vector3();
+        this._camera.getWorldDirection(forward);
+        forward.normalize();
+
+        const previous = this._zoomInfo.current;
+        this._zoomInfo.current += (this._zoomInfo.target - this._zoomInfo.current) * this._options.scale;
+        const delta = previous - this._zoomInfo.current;
+        this._camera.position.add(forward.multiplyScalar(delta));
+
     }
 
     // TODO: Scale panning speed to current zoom
     private onEdgePan(direction: Direction): void {
         switch (direction) {
             case Direction.North:
-                this._panInfo.vy += this._options.acceleration;
+                this._panInfo.verticalVelocity += this._options.acceleration;
                 break;
             case Direction.South:
-                this._panInfo.vy -= this._options.acceleration;
+                this._panInfo.verticalVelocity -= this._options.acceleration;
                 break;
             case Direction.East:
-                this._panInfo.vx += this._options.acceleration;
+                this._panInfo.horizontalVelocity += this._options.acceleration;
                 break;
             case Direction.West:
-                this._panInfo.vx -= this._options.acceleration;
+                this._panInfo.horizontalVelocity -= this._options.acceleration;
                 break;
             default:
                 break;
 
         }
 
-        this._panInfo.vx = clampVelocity(this._panInfo.vx, this._options.maxSpeed);
-        this._panInfo.vy = clampVelocity(this._panInfo.vy, this._options.maxSpeed);
+        this._panInfo.horizontalVelocity = clampVelocity(this._panInfo.horizontalVelocity, this._options.maxSpeed);
+        this._panInfo.verticalVelocity = clampVelocity(this._panInfo.verticalVelocity, this._options.maxSpeed);
 
         function clampVelocity(velocity: number, max: number): number {
             return Math.max(-max, Math.min(max, velocity));
@@ -166,11 +172,21 @@ export class CameraController {
     }
 
     private pan(): void {
-        this._camera.position.x += this._panInfo.vx;
-        this._panInfo.vx = decelerate(this._panInfo.vx, this._options.deceleration, this._options.snap);
+        const forward = new THREE.Vector3();
+        this._camera.getWorldDirection(forward);
+        forward.normalize();
 
-        this._camera.position.y += this._panInfo.vy;
-        this._panInfo.vy = decelerate(this._panInfo.vy, this._options.deceleration, this._options.snap);
+        const vertical = new THREE.Vector3();
+        vertical.crossVectors(forward, new THREE.Vector3(-1, 0, 0));
+
+        const horizontal = new THREE.Vector3();
+        horizontal.crossVectors(forward, new THREE.Vector3(0, 1, 0));
+
+        this._camera.position.add(horizontal.multiplyScalar(this._panInfo.horizontalVelocity));
+        this._panInfo.horizontalVelocity = decelerate(this._panInfo.horizontalVelocity, this._options.deceleration, this._options.snap);
+
+        this._camera.position.add(vertical.multiplyScalar(this._panInfo.verticalVelocity));
+        this._panInfo.verticalVelocity = decelerate(this._panInfo.verticalVelocity, this._options.deceleration, this._options.snap);
 
         function decelerate(velocity: number, deceleration: number, snap: number): number {
             const newVelocity = velocity * deceleration;
