@@ -58,7 +58,6 @@ export class CameraController {
         azimuthVelocity: 0,
         tiltVelocity: 0
     }
-    private _spherical: THREE.Spherical;
 
     constructor(eventBus: EventBus, camera: THREE.Camera, options: Partial<CameraControllerOptions> = {}) {
         this._camera = camera;
@@ -67,7 +66,6 @@ export class CameraController {
             current: camera.position.z,
             target: camera.position.z
         }
-        this._spherical = new THREE.Spherical().setFromVector3(this._camera.position);
 
         this.subscribe(eventBus);
     }
@@ -104,18 +102,33 @@ export class CameraController {
     }
 
     private rotate(): void {
-        this._spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, this._spherical.phi + this._rotation.tiltVelocity));
-        this._rotation.tiltVelocity = 0;
+        if (this._rotation.azimuthVelocity === 0 && this._rotation.tiltVelocity === 0) {
+            return;
+        }
 
-        this._spherical.theta += this._rotation.azimuthVelocity;
+        const lookAt = new THREE.Vector3();
+        this._camera.getWorldDirection(lookAt);
+        lookAt.add(this._camera.position).setZ(0);
+
+        const offset = new THREE.Vector3()
+            .copy(this._camera.position)
+            .sub(lookAt);
+
+        const spherical = new THREE.Spherical().setFromVector3(offset);
+
+        spherical.theta += this._rotation.azimuthVelocity;
+        spherical.phi += this._rotation.tiltVelocity;
+
+        spherical.phi = Math.max(0.01, Math.min(Math.PI / 2 - 0.01, spherical.phi));
+
+        offset.setFromSpherical(spherical);
+
+        this._camera.position
+            .copy(lookAt)
+            .add(offset);
+
         this._rotation.azimuthVelocity = 0;
-
-        this._spherical.makeSafe();
-
-        console.log(this._spherical);
-
-        const cartesian = new THREE.Vector3().setFromSpherical(this._spherical);
-        console.log(cartesian);
+        this._rotation.tiltVelocity = 0;
     }
 
     private onZoom(zoom: number): void {
