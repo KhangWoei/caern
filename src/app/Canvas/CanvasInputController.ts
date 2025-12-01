@@ -42,16 +42,12 @@ export class CanvasInputController extends InputController {
                     if (this._currentPointer !== null && this._previousPointer !== null) {
                         const threshold = 8;
 
-                        const deltaX = this._currentPointer.x - this._previousPointer.x;
-                        if (Math.abs(deltaX) > threshold) {
-                            this._eventBus.publish(CameraEvents.Rotate, deltaX > 0 ? Direction.East : Direction.West);
-                        }
+                        let deltaX = this._currentPointer.x - this._previousPointer.x;
+                        deltaX = deltaX > threshold || deltaX < threshold ? deltaX : 0;
 
-                        // In the browser, the top left is 0,0 which would invert the Y-axis when mapped into the Scene
-                        const deltaY = this._currentPointer.y - this._previousPointer.y;
-                        if (Math.abs(deltaY) > threshold) {
-                            this._eventBus.publish(CameraEvents.Rotate, deltaY > 0 ? Direction.South : Direction.North);
-                        }
+                        let deltaY = this._currentPointer.y - this._previousPointer.y;
+                        deltaY = deltaY > threshold || deltaY < threshold ? deltaY : 0;
+                        this._eventBus.publish(CameraEvents.Rotate, deltaX, deltaY);
 
                         this._previousPointer.copy(this._currentPointer);
                     }

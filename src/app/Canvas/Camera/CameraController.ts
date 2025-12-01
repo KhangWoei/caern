@@ -40,8 +40,8 @@ type PanInfo = {
 }
 
 type Rotation = {
-    azimuthVelocity: number,
-    tiltVelocity: number
+    thetaVelocity: number,
+    phiVelocity: number
 }
 
 export class CameraController {
@@ -55,8 +55,8 @@ export class CameraController {
     };
 
     private _rotation: Rotation = {
-        azimuthVelocity: 0,
-        tiltVelocity: 0
+        thetaVelocity: 0,
+        phiVelocity: 0
     }
 
     constructor(eventBus: EventBus, camera: THREE.Camera, options: Partial<CameraControllerOptions> = {}) {
@@ -77,58 +77,46 @@ export class CameraController {
     }
 
     private subscribe(eventBus: EventBus) {
-        eventBus.subscribe(CameraEvents.Rotate, (direction: Direction) => { this.onRotate(direction) });
+        eventBus.subscribe(CameraEvents.Rotate, (deltaX: number, deltaY: number) => { this.onRotate(deltaX, deltaY) });
         eventBus.subscribe(CameraEvents.Zoom, (zoom: number) => { this.onZoom(zoom) });
         eventBus.subscribe(CameraEvents.EdgePan, (direction: Direction) => { this.onEdgePan(direction) });
     }
 
-    private onRotate(direction: Direction): void {
-        switch (direction) {
-            case Direction.North:
-                this._rotation.tiltVelocity += this._options.acceleration;
-                break;
-            case Direction.South:
-                this._rotation.tiltVelocity -= this._options.acceleration;
-                break;
-            case Direction.East:
-                this._rotation.azimuthVelocity += this._options.acceleration;
-                break;
-            case Direction.West:
-                this._rotation.azimuthVelocity -= this._options.acceleration;
-                break;
-            default:
-                break;
-        }
+    private onRotate(deltaX: number, deltaY: number): void {
+        this._rotation.thetaVelocity = deltaX * 0.01;
+        this._rotation.phiVelocity = -deltaY * 0.01;
     }
 
     private rotate(): void {
-        if (this._rotation.azimuthVelocity === 0 && this._rotation.tiltVelocity === 0) {
+        if (this._rotation.thetaVelocity === 0 && this._rotation.phiVelocity === 0) {
             return;
         }
 
-        const lookAt = new THREE.Vector3();
-        this._camera.getWorldDirection(lookAt);
-        lookAt.add(this._camera.position).setZ(0);
+        const cameraPosition = new THREE.Vector3();
+        this._camera.getWorldPosition(cameraPosition);
 
-        const offset = new THREE.Vector3()
-            .copy(this._camera.position)
-            .sub(lookAt);
+        const sphericalPosition = new THREE.Spherical().setFromCartesianCoords(
+            cameraPosition.x,
+            cameraPosition.z,
+            cameraPosition.y
+        );
 
-        const spherical = new THREE.Spherical().setFromVector3(offset);
+        sphericalPosition.phi += this._rotation.phiVelocity;
+        sphericalPosition.theta += this._rotation.thetaVelocity;
 
-        spherical.theta += this._rotation.azimuthVelocity;
-        spherical.phi += this._rotation.tiltVelocity;
+        const minPhi = 0.01;
+        const maxPhi = Math.PI / 2 - 0.01;
+        sphericalPosition.phi = Math.max(minPhi, Math.min(maxPhi, sphericalPosition.phi));
 
-        spherical.phi = Math.max(0.01, Math.min(Math.PI / 2 - 0.01, spherical.phi));
+        const newPosition = new THREE.Vector3();
+        newPosition.setFromSpherical(sphericalPosition);
 
-        offset.setFromSpherical(spherical);
+        this._camera.position.set(newPosition.x, newPosition.z, newPosition.y);
 
-        this._camera.position
-            .copy(lookAt)
-            .add(offset);
+        this._rotation.thetaVelocity = this.decelerate(this._rotation.thetaVelocity, this._options.deceleration, this._options.snap);
+        this._rotation.phiVelocity = this.decelerate(this._rotation.phiVelocity, this._options.deceleration, this._options.snap);
 
-        this._rotation.azimuthVelocity = 0;
-        this._rotation.tiltVelocity = 0;
+        this._camera.lookAt(0, 0, 0);
     }
 
     private onZoom(zoom: number): void {
@@ -194,16 +182,16 @@ export class CameraController {
         horizontal.crossVectors(forward, new THREE.Vector3(0, 1, 0));
 
         this._camera.position.add(horizontal.multiplyScalar(this._panInfo.horizontalVelocity));
-        this._panInfo.horizontalVelocity = decelerate(this._panInfo.horizontalVelocity, this._options.deceleration, this._options.snap);
+        this._panInfo.horizontalVelocity = this.decelerate(this._panInfo.horizontalVelocity, this._options.deceleration, this._options.snap);
 
         this._camera.position.add(vertical.multiplyScalar(this._panInfo.verticalVelocity));
-        this._panInfo.verticalVelocity = decelerate(this._panInfo.verticalVelocity, this._options.deceleration, this._options.snap);
+        this._panInfo.verticalVelocity = this.decelerate(this._panInfo.verticalVelocity, this._options.deceleration, this._options.snap);
+    }
 
-        function decelerate(velocity: number, deceleration: number, snap: number): number {
-            const newVelocity = velocity * deceleration;
+    private decelerate(velocity: number, deceleration: number, snap: number): number {
+        const newVelocity = velocity * deceleration;
 
-            return Math.abs(newVelocity) <= snap ? 0 : newVelocity;
-        }
+        return Math.abs(newVelocity) <= snap ? 0 : newVelocity;
     }
 }
 

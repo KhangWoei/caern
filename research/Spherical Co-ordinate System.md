@@ -39,5 +39,11 @@ elevation = asin(y / r)
 ### > [!NOTE]
 > These formulas assume the origin is set at (0, 0, 0), if the origin is at (cx, cy, cz) it can be adjusted by adding or subtracting cx, cy, and cz to the respective coordinates 
 
+
+# Problems
+The current project is primarily an interactive map, which makes the standard spherical coordinate system awkward to work with.
+
+The standard spherical coordinate convention rotates horizontally around the y-axis and vertically around the x-axis. However, with a top-down (bird's eye) view, I need horizontal rotation around the z-axis (the vertical world axis) and vertical rotation around the x-axis. Working within the standard spherical system produces janky, unintuitive controls.
+
 [Spherical coordinate system](https://en.wikipedia.org/wiki/Spherical_coordinate_system)
 
