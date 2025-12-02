@@ -1,10 +1,10 @@
 import * as THREE from "three"
 import { EventBus } from "../../EventBus";
 import { CameraEvents } from "./CameraEvents";
+import { Zoom, ZoomOptions } from "./Zoom";
 
 export type CameraControllerOptions = {
-    minZ: number,
-    maxZ: number,
+    zoom: ZoomOptions,
     scale: number,
     snap: number,
     acceleration: number,
@@ -20,18 +20,17 @@ export enum Direction {
 }
 
 const DEFAULT_OPTIONS: CameraControllerOptions = {
-    minZ: 10,
-    maxZ: 100,
+    zoom: {
+        scale: 0.1,
+        min: 10,
+        max: 100,
+        snap: 0.1
+    },
     scale: 0.1,
     snap: 0.1,
     acceleration: 0.25,
     deceleration: 0.75,
     maxSpeed: 2
-}
-
-type ZoomInfo = {
-    current: number,
-    target: number
 }
 
 type PanInfo = {
@@ -48,7 +47,6 @@ export class CameraController {
     private readonly _camera: THREE.Camera;
     private readonly _options: CameraControllerOptions;
 
-    private _zoomInfo: ZoomInfo;
     private _panInfo: PanInfo = {
         horizontalVelocity: 0,
         verticalVelocity: 0
@@ -59,26 +57,24 @@ export class CameraController {
         phiVelocity: 0
     }
 
+    private _zoom: Zoom;
+
     constructor(eventBus: EventBus, camera: THREE.Camera, options: Partial<CameraControllerOptions> = {}) {
         this._camera = camera;
         this._options = { ...DEFAULT_OPTIONS, ...options };
-        this._zoomInfo = {
-            current: camera.position.z,
-            target: camera.position.z
-        }
-
+        this._zoom = new Zoom(camera.position.z, this._options.zoom);
         this.subscribe(eventBus);
     }
 
     public update(): void {
-        this.zoom();
+        this._zoom.update(this._camera);
         this.pan();
         this.rotate();
     }
 
     private subscribe(eventBus: EventBus) {
         eventBus.subscribe(CameraEvents.Rotate, (deltaX: number, deltaY: number) => { this.onRotate(deltaX, deltaY) });
-        eventBus.subscribe(CameraEvents.Zoom, (zoom: number) => { this.onZoom(zoom) });
+        eventBus.subscribe(CameraEvents.Zoom, (zoom: number) => { this._zoom.onZoom(zoom) });
         eventBus.subscribe(CameraEvents.EdgePan, (direction: Direction) => { this.onEdgePan(direction) });
     }
 
@@ -117,29 +113,6 @@ export class CameraController {
         this._rotation.phiVelocity = this.decelerate(this._rotation.phiVelocity, this._options.deceleration, this._options.snap);
 
         this._camera.lookAt(0, 0, 0);
-    }
-
-    private onZoom(zoom: number): void {
-        const zoomDelta = zoom * this._options.scale;
-
-        this._zoomInfo.target = Math.max(this._options.minZ, Math.min(this._options.maxZ, this._zoomInfo.target + zoomDelta));
-    }
-
-    private zoom(): void {
-        if (Math.abs(this._zoomInfo.target - this._zoomInfo.current) <= this._options.snap) {
-            this._zoomInfo.current = this._zoomInfo.target;
-            return;
-        }
-
-        const forward = new THREE.Vector3();
-        this._camera.getWorldDirection(forward);
-        forward.normalize();
-
-        const previous = this._zoomInfo.current;
-        this._zoomInfo.current += (this._zoomInfo.target - this._zoomInfo.current) * this._options.scale;
-        const delta = previous - this._zoomInfo.current;
-        this._camera.position.add(forward.multiplyScalar(delta));
-
     }
 
     // TODO: Scale panning speed to current zoom
