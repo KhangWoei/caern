@@ -2,21 +2,21 @@ import * as THREE from "three";
 import { EventBus } from "../EventBus";
 import { SceneEvents } from "./SceneEvents";
 import { CameraController } from "./Camera/CameraController";
-import { CanvasInputController } from "./CanvasInputController";
+import { Inputs } from "./Inputs";
 
 export class SceneManager {
     private readonly _renderer: THREE.WebGLRenderer;
     private readonly _scene: THREE.Scene;
     private readonly _camera: THREE.Camera;
     private readonly _cameraControls: CameraController;
-    private readonly _inputController: CanvasInputController;
+    private readonly _inputs: Inputs;
 
     constructor(canvas: HTMLCanvasElement, eventBus: EventBus) {
         this._scene = new THREE.Scene();
         this._camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this._camera.position.set(0, 0, 50);
         this._renderer = new THREE.WebGLRenderer({ canvas })
-        this._inputController = new CanvasInputController(canvas, eventBus);
+        this._inputs = new Inputs(canvas, eventBus);
 
         this._cameraControls = new CameraController(eventBus, this._camera);
         this.subscribe(eventBus);
@@ -52,7 +52,7 @@ export class SceneManager {
     }
 
     private _animate(...params: Array<() => void>): void {
-        this._inputController.update();
+        this._inputs.update();
         this._cameraControls.update();
         params.forEach(animation => {
             animation()
