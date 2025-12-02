@@ -1,11 +1,8 @@
 import { EventBus } from "../EventBus";
 import { InputController } from "../InputController";
 import { CameraEvents } from "./Camera/CameraEvents";
-import { Direction } from "./Camera/CameraController";
 import { Vector2 } from "three";
-import VelocityNode from "three/src/nodes/accessors/VelocityNode.js";
 
-// TODO: Revisit this type, it belongs in the wrong place
 export class CanvasInputController extends InputController {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _eventBus: EventBus;
@@ -27,16 +24,16 @@ export class CanvasInputController extends InputController {
         this._keysPressed.forEach(key => {
             switch (key) {
                 case "w":
-                    this._eventBus.publish(CameraEvents.EdgePan, Direction.North);
+                    this._eventBus.publish(CameraEvents.EdgePan, 0, 1);
                     break;
                 case "a":
-                    this._eventBus.publish(CameraEvents.EdgePan, Direction.West);
+                    this._eventBus.publish(CameraEvents.EdgePan, -1, 0);
                     break;
                 case "s":
-                    this._eventBus.publish(CameraEvents.EdgePan, Direction.South);
+                    this._eventBus.publish(CameraEvents.EdgePan, 0, -1);
                     break;
                 case "d":
-                    this._eventBus.publish(CameraEvents.EdgePan, Direction.East);
+                    this._eventBus.publish(CameraEvents.EdgePan, 1, 0);
                     break;
                 case "mouse:wheel":
                     if (this._currentPointer !== null && this._previousPointer !== null) {

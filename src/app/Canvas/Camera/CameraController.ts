@@ -2,22 +2,12 @@ import * as THREE from "three"
 import { EventBus } from "../../EventBus";
 import { CameraEvents } from "./CameraEvents";
 import { Zoom, ZoomOptions } from "./Zoom";
+import { Pan, PanOptions } from "./Pan";
 
 export type CameraControllerOptions = {
     zoom: ZoomOptions,
-    scale: number,
-    snap: number,
-    acceleration: number,
-    deceleration: number,
-    maxSpeed: number
+    pan: PanOptions
 };
-
-export enum Direction {
-    North = "camera:direction:north",
-    South = "camera:direction:south",
-    East = "camera:direction:east",
-    West = "camera:direction:west"
-}
 
 const DEFAULT_OPTIONS: CameraControllerOptions = {
     zoom: {
@@ -26,16 +16,12 @@ const DEFAULT_OPTIONS: CameraControllerOptions = {
         max: 100,
         snap: 0.1
     },
-    scale: 0.1,
-    snap: 0.1,
-    acceleration: 0.25,
-    deceleration: 0.75,
-    maxSpeed: 2
-}
-
-type PanInfo = {
-    horizontalVelocity: number,
-    verticalVelocity: number
+    pan: {
+        snap: 0.1,
+        acceleration: 0.25,
+        deceleration: 0.75,
+        maxSpeed: 2
+    }
 }
 
 type Rotation = {
@@ -47,35 +33,33 @@ export class CameraController {
     private readonly _camera: THREE.Camera;
     private readonly _options: CameraControllerOptions;
 
-    private _panInfo: PanInfo = {
-        horizontalVelocity: 0,
-        verticalVelocity: 0
-    };
-
     private _rotation: Rotation = {
         thetaVelocity: 0,
         phiVelocity: 0
     }
 
+    private _pan: Pan;
     private _zoom: Zoom;
 
     constructor(eventBus: EventBus, camera: THREE.Camera, options: Partial<CameraControllerOptions> = {}) {
         this._camera = camera;
         this._options = { ...DEFAULT_OPTIONS, ...options };
+
+        this._pan = new Pan(this._options.pan);
         this._zoom = new Zoom(camera.position.z, this._options.zoom);
         this.subscribe(eventBus);
     }
 
     public update(): void {
         this._zoom.update(this._camera);
-        this.pan();
+        this._pan.update(this._camera);
         this.rotate();
     }
 
     private subscribe(eventBus: EventBus) {
         eventBus.subscribe(CameraEvents.Rotate, (deltaX: number, deltaY: number) => { this.onRotate(deltaX, deltaY) });
         eventBus.subscribe(CameraEvents.Zoom, (zoom: number) => { this._zoom.onZoom(zoom) });
-        eventBus.subscribe(CameraEvents.EdgePan, (direction: Direction) => { this.onEdgePan(direction) });
+        eventBus.subscribe(CameraEvents.EdgePan, (deltaX: number, deltaY: number) => { this._pan.pan(deltaX, deltaY) });
     }
 
     private onRotate(deltaX: number, deltaY: number): void {
@@ -109,56 +93,10 @@ export class CameraController {
 
         this._camera.position.set(newPosition.x, newPosition.z, newPosition.y);
 
-        this._rotation.thetaVelocity = this.decelerate(this._rotation.thetaVelocity, this._options.deceleration, this._options.snap);
-        this._rotation.phiVelocity = this.decelerate(this._rotation.phiVelocity, this._options.deceleration, this._options.snap);
+        this._rotation.thetaVelocity = this.decelerate(this._rotation.thetaVelocity, this._options.pan.deceleration, this._options.pan.snap);
+        this._rotation.phiVelocity = this.decelerate(this._rotation.phiVelocity, this._options.pan.deceleration, this._options.pan.snap);
 
         this._camera.lookAt(0, 0, 0);
-    }
-
-    // TODO: Scale panning speed to current zoom
-    private onEdgePan(direction: Direction): void {
-        switch (direction) {
-            case Direction.North:
-                this._panInfo.verticalVelocity += this._options.acceleration;
-                break;
-            case Direction.South:
-                this._panInfo.verticalVelocity -= this._options.acceleration;
-                break;
-            case Direction.East:
-                this._panInfo.horizontalVelocity += this._options.acceleration;
-                break;
-            case Direction.West:
-                this._panInfo.horizontalVelocity -= this._options.acceleration;
-                break;
-            default:
-                break;
-
-        }
-
-        this._panInfo.horizontalVelocity = clampVelocity(this._panInfo.horizontalVelocity, this._options.maxSpeed);
-        this._panInfo.verticalVelocity = clampVelocity(this._panInfo.verticalVelocity, this._options.maxSpeed);
-
-        function clampVelocity(velocity: number, max: number): number {
-            return Math.max(-max, Math.min(max, velocity));
-        }
-    }
-
-    private pan(): void {
-        const forward = new THREE.Vector3();
-        this._camera.getWorldDirection(forward);
-        forward.normalize();
-
-        const vertical = new THREE.Vector3();
-        vertical.crossVectors(forward, new THREE.Vector3(-1, 0, 0));
-
-        const horizontal = new THREE.Vector3();
-        horizontal.crossVectors(forward, new THREE.Vector3(0, 1, 0));
-
-        this._camera.position.add(horizontal.multiplyScalar(this._panInfo.horizontalVelocity));
-        this._panInfo.horizontalVelocity = this.decelerate(this._panInfo.horizontalVelocity, this._options.deceleration, this._options.snap);
-
-        this._camera.position.add(vertical.multiplyScalar(this._panInfo.verticalVelocity));
-        this._panInfo.verticalVelocity = this.decelerate(this._panInfo.verticalVelocity, this._options.deceleration, this._options.snap);
     }
 
     private decelerate(velocity: number, deceleration: number, snap: number): number {
