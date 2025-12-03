@@ -1,8 +1,9 @@
 import { Object3D } from "three";
 import { SceneEvents } from "./Canvas/SceneEvents"
 import { CameraEvents } from "./Canvas/Camera/CameraEvents";
+import { LightingEvents } from "./Canvas/Lights/LightingEvents";
 
-type Events = SceneEvents | CameraEvents;
+type Events = SceneEvents | CameraEvents | LightingEvents;
 
 /*
  * Need to do K in Events to assure the compiler that all enum values are addressed.
@@ -10,9 +11,9 @@ type Events = SceneEvents | CameraEvents;
 type EventCallbackMap = {
     [K in Events]: K extends SceneEvents.Add ? (...object: Object3D[]) => void
     : K extends SceneEvents.Remove ? (...object: Object3D[]) => void
-    : K extends CameraEvents.Rotate ? (deltaX: number, deltaY: number) => void
     : K extends CameraEvents.Zoom ? (zoom: number) => void
     : K extends CameraEvents.EdgePan ? (deltaX: number, deltaY: number) => void
+    : K extends LightingEvents.UpdateTime ? (time: number) => void
     : never;
 }
 
