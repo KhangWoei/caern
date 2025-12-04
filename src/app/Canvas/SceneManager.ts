@@ -14,6 +14,8 @@ export class SceneManager {
     private readonly _lights: Lighting;
 
     constructor(canvas: HTMLCanvasElement, eventBus: EventBus) {
+        this.subscribe(eventBus);
+
         this._renderer = new WebGLRenderer({ canvas })
         this._scene = new Scene();
 
@@ -23,7 +25,6 @@ export class SceneManager {
 
         this._inputs = new Inputs(canvas, eventBus);
         this._lights = new Lighting(new AmbientLight(), new DirectionalLight(), new DirectionalLight(), eventBus);
-        this.subscribe(eventBus);
     }
 
     public render(): void {

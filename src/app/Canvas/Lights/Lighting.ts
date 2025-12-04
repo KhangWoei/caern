@@ -1,8 +1,9 @@
-import { AmbientLight, DirectionalLight, Vector3 } from "three";
+import { AmbientLight, Color, DirectionalLight, Vector3 } from "three";
 import { LightingEvents } from "./LightingEvents";
 import { EventBus } from "../../EventBus";
 import { SceneEvents } from "../SceneEvents";
 
+// TODO: there's got to be a better way to create a testable lighting manager
 export class Lighting {
     private readonly _sun: DirectionalLight;
     private readonly _moon: DirectionalLight;
@@ -10,6 +11,9 @@ export class Lighting {
 
     constructor(ambience: AmbientLight, sun: DirectionalLight, moon: DirectionalLight, eventBus: EventBus) {
         this._ambient = ambience;
+        this._ambient.color = new Color("dimgrey");
+        this._ambient.intensity = 5;
+
         this._sun = sun;
         this._moon = moon;
 
